@@ -14,7 +14,11 @@ export default async function handleRequest(
   remixContext: EntryContext,
   _loadContext: AppLoadContext,
 ) {
-  await initializeModelList();
+  try {
+    await initializeModelList();
+  } catch (error) {
+    console.error('Failed to initialize model list:', error);
+  }
 
   const readable = await renderToReadableStream(<RemixServer context={remixContext} url={request.url} />, {
     signal: request.signal,
