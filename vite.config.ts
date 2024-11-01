@@ -35,6 +35,13 @@ export default defineConfig((config) => {
         },
       },
     },
+    server: {
+      host: true,
+      // Let Coolify handle HTTPS
+      proxy: {
+        // If you need any specific proxy settings
+      }
+    }
   };
 });
 
