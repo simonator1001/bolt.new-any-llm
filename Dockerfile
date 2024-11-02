@@ -15,6 +15,12 @@ RUN apt-get update && apt-get install -y \
 # Copy package files first
 COPY package*.json ./
 
+# Install global dependencies
+RUN npm install -g \
+    @remix-run/dev \
+    typescript \
+    wrangler
+
 # Install dependencies using npm with exact versions
 RUN npm install --legacy-peer-deps \
     @cloudflare/workers-types@4.20241022.0 \
@@ -30,9 +36,6 @@ RUN npm install --legacy-peer-deps \
 # Install remaining dependencies
 RUN npm install
 
-# Install global tools
-RUN npm install -g typescript@5.5.2 wrangler
-
 # Copy the rest of the application
 COPY . .
 
@@ -40,4 +43,4 @@ COPY . .
 RUN npx tsc --declaration
 
 # Start the application
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+CMD ["npx", "remix", "vite:dev", "--host", "0.0.0.0"]
