@@ -12,20 +12,17 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy package files first
-COPY package*.json ./
-
-# Create a package.json if it doesn't exist
-RUN if [ ! -f package.json ]; then echo '{"name":"bolt","private":true}' > package.json; fi
+# Copy package.json first
+COPY package.json ./
 
 # Install dependencies using npm
 RUN npm install --legacy-peer-deps
 
 # Install additional dependencies explicitly
 RUN npm install --save-dev --legacy-peer-deps \
-    @cloudflare/workers-types \
-    @remix-run/cloudflare \
-    @remix-run/dev \
+    @cloudflare/workers-types@4.20241022.0 \
+    @remix-run/cloudflare@2.13.1 \
+    @remix-run/dev@2.13.1 \
     @types/node \
     typescript \
     vite \
@@ -50,6 +47,9 @@ ENV NODE_ENV=production \
 # Configure wrangler
 RUN mkdir -p /root/.config/.wrangler && \
     echo '{"enabled":false}' > /root/.config/.wrangler/metrics.json
+
+# Install wrangler globally
+RUN npm install -g wrangler
 
 # Build the application
 RUN npm run build
