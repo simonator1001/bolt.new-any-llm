@@ -12,18 +12,17 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Install pnpm using npm
-RUN npm install -g pnpm@9.4.0
-
-# Copy package files first for better caching
+# Copy package files first
 COPY package.json ./
-RUN pnpm install
+
+# Install dependencies using npm first
+RUN npm install
+
+# Install additional dependencies
+RUN npm install -D @cloudflare/workers-types @remix-run/cloudflare @types/node vite @remix-run/dev typescript unocss vite-plugin-node-polyfills vite-plugin-optimize-css-modules vite-tsconfig-paths
 
 # Copy the rest of the application
 COPY . .
-
-# Install additional dependencies
-RUN pnpm add -D @cloudflare/workers-types @remix-run/cloudflare @types/node vite @remix-run/dev typescript
 
 # Production image
 FROM base AS bolt-ai-production
@@ -32,10 +31,10 @@ ENV NODE_ENV=production \
     WRANGLER_SEND_METRICS=false
 
 # Build the application
-RUN pnpm run build
+RUN npm run build
 
 # Start the application
-CMD ["pnpm", "run", "dockerstart"]
+CMD ["npm", "run", "dockerstart"]
 
 # Development image
 FROM base AS bolt-ai-development
@@ -43,4 +42,4 @@ FROM base AS bolt-ai-development
 ENV NODE_ENV=development
 
 # Start development server
-CMD ["pnpm", "run", "dev", "--host", "0.0.0.0"]
+CMD ["npm", "run", "dev", "--host", "0.0.0.0"]
