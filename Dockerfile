@@ -15,14 +15,15 @@ RUN apt-get update && apt-get install -y \
 # Install pnpm
 RUN npm install -g pnpm@9.4.0
 
-# Enable pnpm
-RUN corepack enable pnpm
+# Enable pnpm and create empty pnpm-lock.yaml
+RUN corepack enable pnpm && \
+    echo '{}' > pnpm-lock.yaml
 
-# Copy package files first
+# Copy only package.json first
 COPY package.json ./
 
-# Install dependencies using pnpm
-RUN pnpm install --no-lockfile
+# Force pnpm to ignore existing lock file and create a new one
+RUN pnpm install --force
 
 # Install additional dependencies explicitly
 RUN pnpm add -D \
