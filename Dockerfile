@@ -15,42 +15,29 @@ RUN apt-get update && apt-get install -y \
 # Copy package files first
 COPY package*.json ./
 
-# Install dependencies using npm
-RUN npm install --legacy-peer-deps
-
-# Install global dependencies
-RUN npm install -g \
-    wrangler \
-    @remix-run/dev \
-    typescript
-
-# Install additional dependencies explicitly
-RUN npm install --save-dev \
+# Install dependencies using npm with exact versions
+RUN npm install --legacy-peer-deps \
     @cloudflare/workers-types@4.20241022.0 \
     @remix-run/cloudflare@2.13.1 \
     @remix-run/dev@2.13.1 \
     @remix-run/react@2.13.1 \
-    @types/node \
-    typescript \
-    vite \
-    unocss \
-    vite-plugin-node-polyfills \
-    vite-plugin-optimize-css-modules \
-    vite-tsconfig-paths \
-    @blitz/eslint-plugin \
-    sass \
-    sass-embedded \
-    vitest
+    vite@5.4.10 \
+    unocss@0.61.9 \
+    vite-plugin-node-polyfills@0.22.0 \
+    vite-plugin-optimize-css-modules@1.1.0 \
+    vite-tsconfig-paths@4.3.2
+
+# Install remaining dependencies
+RUN npm install
+
+# Install global tools
+RUN npm install -g typescript@5.5.2 wrangler
 
 # Copy the rest of the application
 COPY . .
 
-# Configure wrangler
-RUN mkdir -p /root/.config/.wrangler && \
-    echo '{"enabled":false}' > /root/.config/.wrangler/metrics.json
-
-# Build the application
-RUN npx remix build
+# Generate TypeScript types
+RUN npx tsc --declaration
 
 # Start the application
-CMD ["npx", "remix", "vite:dev", "--host", "0.0.0.0"]
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
