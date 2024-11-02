@@ -12,8 +12,8 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy package.json first
-COPY package.json ./
+# Copy package files first
+COPY package*.json ./
 
 # Install dependencies using npm
 RUN npm install --legacy-peer-deps
@@ -33,7 +33,8 @@ RUN npm install --save-dev --legacy-peer-deps \
     @blitz/eslint-plugin \
     sass \
     sass-embedded \
-    vitest
+    vitest \
+    @remix-run/react@2.13.1
 
 # Copy the rest of the application
 COPY . .
