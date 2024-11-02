@@ -12,17 +12,23 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
+# Install pnpm
+RUN npm install -g pnpm@9.4.0
+
+# Enable pnpm
+RUN corepack enable pnpm
+
 # Copy package files first
 COPY package.json ./
 
-# Create a package-lock.json if it doesn't exist
-RUN npm install --package-lock-only
+# Create a new pnpm-lock.yaml
+RUN pnpm install --lockfile-only
 
-# Install dependencies using npm
-RUN npm ci --legacy-peer-deps
+# Install dependencies using pnpm
+RUN pnpm install
 
 # Install additional dependencies explicitly
-RUN npm install --save-dev --legacy-peer-deps \
+RUN pnpm add -D \
     @cloudflare/workers-types@4.20241022.0 \
     @remix-run/cloudflare@2.13.1 \
     @remix-run/dev@2.13.1 \
@@ -43,7 +49,7 @@ RUN npm install --save-dev --legacy-peer-deps \
 COPY . .
 
 # Generate TypeScript types
-RUN npx tsc --declaration --emitDeclarationOnly
+RUN pnpm exec tsc --declaration --emitDeclarationOnly
 
 # Production image
 FROM base AS bolt-ai-production
@@ -56,13 +62,13 @@ RUN mkdir -p /root/.config/.wrangler && \
     echo '{"enabled":false}' > /root/.config/.wrangler/metrics.json
 
 # Install wrangler globally
-RUN npm install -g wrangler
+RUN pnpm add -g wrangler
 
 # Build the application
-RUN npm run build
+RUN pnpm run build
 
 # Start the application
-CMD ["npm", "run", "dockerstart"]
+CMD ["pnpm", "run", "dockerstart"]
 
 # Development image
 FROM base AS bolt-ai-development
@@ -70,4 +76,4 @@ FROM base AS bolt-ai-development
 ENV NODE_ENV=development
 
 # Start development server
-CMD ["npm", "run", "dev", "--host", "0.0.0.0"]
+CMD ["pnpm", "run", "dev", "--host", "0.0.0.0"]
