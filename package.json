@@ -7,14 +7,14 @@
   "type": "module",
   "scripts": {
     "deploy": "npm run build && wrangler pages deploy",
-    "build": "npx @remix-run/dev vite:build",
-    "dev": "npx @remix-run/dev vite:dev --host 0.0.0.0",
+    "build": "node ./node_modules/@remix-run/dev/dist/cli.js vite:build",
+    "dev": "node ./node_modules/@remix-run/dev/dist/cli.js vite:dev --host 0.0.0.0 --port 5173",
     "test": "vitest --run",
     "test:watch": "vitest",
     "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
     "lint:fix": "npm run lint -- --fix",
     "start": "bindings=$(./bindings.sh) && wrangler pages dev ./build/client $bindings",
-    "dockerstart": "npx @remix-run/dev vite:dev --host 0.0.0.0",
+    "dockerstart": "node ./node_modules/@remix-run/dev/dist/cli.js vite:dev --host 0.0.0.0 --port 5173",
     "typecheck": "tsc",
     "typegen": "wrangler types",
     "preview": "npm run build && npm run start"
