@@ -18,6 +18,12 @@ COPY package*.json ./
 # Install dependencies using npm
 RUN npm install --legacy-peer-deps
 
+# Install global dependencies
+RUN npm install -g \
+    wrangler \
+    @remix-run/dev \
+    typescript
+
 # Install additional dependencies explicitly
 RUN npm install --save-dev \
     @cloudflare/workers-types@4.20241022.0 \
@@ -39,15 +45,12 @@ RUN npm install --save-dev \
 # Copy the rest of the application
 COPY . .
 
-# Install wrangler globally
-RUN npm install -g wrangler
-
 # Configure wrangler
 RUN mkdir -p /root/.config/.wrangler && \
     echo '{"enabled":false}' > /root/.config/.wrangler/metrics.json
 
 # Build the application
-RUN npm run build
+RUN npx remix build
 
 # Start the application
-CMD ["npm", "run", "dockerstart"]
+CMD ["npx", "remix", "vite:dev", "--host", "0.0.0.0"]
