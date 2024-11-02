@@ -15,14 +15,18 @@ RUN apt-get update && apt-get install -y \
 # Copy package files first
 COPY package*.json ./
 
-# Install global dependencies
-RUN npm install -g \
-    @remix-run/dev \
-    typescript \
-    wrangler
+# Install dependencies using npm
+RUN npm install
 
-# Install dependencies using npm with exact versions
-RUN npm install --legacy-peer-deps \
+# Install global dependencies and link them
+RUN npm install -g \
+    @remix-run/dev@2.13.1 \
+    typescript@5.5.2 \
+    wrangler && \
+    npm link @remix-run/dev
+
+# Install additional dependencies explicitly
+RUN npm install --save-dev --legacy-peer-deps \
     @cloudflare/workers-types@4.20241022.0 \
     @remix-run/cloudflare@2.13.1 \
     @remix-run/dev@2.13.1 \
@@ -33,14 +37,15 @@ RUN npm install --legacy-peer-deps \
     vite-plugin-optimize-css-modules@1.1.0 \
     vite-tsconfig-paths@4.3.2
 
-# Install remaining dependencies
-RUN npm install
-
 # Copy the rest of the application
 COPY . .
 
-# Generate TypeScript types
-RUN npx tsc --declaration
+# Create a bin directory and add it to PATH
+RUN mkdir -p /app/node_modules/.bin && \
+    ln -s /usr/local/bin/remix /app/node_modules/.bin/remix
+
+# Set PATH to include node_modules/.bin
+ENV PATH="/app/node_modules/.bin:${PATH}"
 
 # Start the application
-CMD ["npx", "remix", "vite:dev", "--host", "0.0.0.0"]
+CMD ["npm", "run", "dev"]
