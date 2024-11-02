@@ -13,16 +13,20 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy package files first
-COPY package*.json ./
+COPY package.json ./
+
+# Create a package-lock.json if it doesn't exist
+RUN npm install --package-lock-only
 
 # Install dependencies using npm
-RUN npm install --legacy-peer-deps
+RUN npm ci --legacy-peer-deps
 
 # Install additional dependencies explicitly
 RUN npm install --save-dev --legacy-peer-deps \
     @cloudflare/workers-types@4.20241022.0 \
     @remix-run/cloudflare@2.13.1 \
     @remix-run/dev@2.13.1 \
+    @remix-run/react@2.13.1 \
     @types/node \
     typescript \
     vite \
@@ -33,11 +37,13 @@ RUN npm install --save-dev --legacy-peer-deps \
     @blitz/eslint-plugin \
     sass \
     sass-embedded \
-    vitest \
-    @remix-run/react@2.13.1
+    vitest
 
 # Copy the rest of the application
 COPY . .
+
+# Generate TypeScript types
+RUN npx tsc --declaration --emitDeclarationOnly
 
 # Production image
 FROM base AS bolt-ai-production
