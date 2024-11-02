@@ -4,12 +4,12 @@ services:
       context: .
       dockerfile: Dockerfile
       target: bolt-ai-production
+      args:
+        - NODE_ENV=production
     ports:
       - "443:5173"
-    env_file: ".env.local"
     environment:
       - NODE_ENV=production
-      - COMPOSE_PROFILES=production
       - PORT=5173
       - GROQ_API_KEY=${GROQ_API_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -19,8 +19,6 @@ services:
       - OLLAMA_API_BASE_URL=${OLLAMA_API_BASE_URL}
       - VITE_LOG_LEVEL=${VITE_LOG_LEVEL:-debug}
     command: npm run dockerstart
-    profiles:
-      - production
     restart: unless-stopped
     networks:
       - coolify-network
