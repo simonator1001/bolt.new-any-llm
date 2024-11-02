@@ -3,65 +3,50 @@ FROM ${BASE} AS base
 
 WORKDIR /app
 
-# Install dependencies (this step is cached as long as the dependencies don't change)
+# Install system dependencies and development tools
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    git \
+    python3 \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install pnpm using npm
+RUN npm install -g pnpm@9.4.0 \
+    @cloudflare/workers-types \
+    @remix-run/dev \
+    vite \
+    typescript
+
+# Copy package files first for better caching
 COPY package.json pnpm-lock.yaml ./
 
-RUN corepack enable pnpm && pnpm install
+# Install dependencies
+RUN pnpm install
 
-# Copy the rest of your app's source code
+# Copy the rest of the application
 COPY . .
 
-# Expose the port the app runs on
-EXPOSE 5173
+# Install type definitions that were missing
+RUN pnpm add -D @cloudflare/workers-types @remix-run/cloudflare @types/node vite
 
 # Production image
 FROM base AS bolt-ai-production
 
-# Define environment variables with default values or let them be overridden
-ARG GROQ_API_KEY
-ARG OPENAI_API_KEY
-ARG ANTHROPIC_API_KEY
-ARG OPEN_ROUTER_API_KEY
-ARG GOOGLE_GENERATIVE_AI_API_KEY
-ARG OLLAMA_API_BASE_URL
-ARG VITE_LOG_LEVEL=debug
+ENV NODE_ENV=production \
+    WRANGLER_SEND_METRICS=false
 
-ENV WRANGLER_SEND_METRICS=false \
-    GROQ_API_KEY=${GROQ_API_KEY} \
-    OPENAI_API_KEY=${OPENAI_API_KEY} \
-    ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY} \
-    OPEN_ROUTER_API_KEY=${OPEN_ROUTER_API_KEY} \
-    GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_GENERATIVE_AI_API_KEY} \
-    OLLAMA_API_BASE_URL=${OLLAMA_API_BASE_URL} \
-    VITE_LOG_LEVEL=${VITE_LOG_LEVEL}
+# Build the application
+RUN pnpm run build
 
-# Pre-configure wrangler to disable metrics
-RUN mkdir -p /root/.config/.wrangler && \
-    echo '{"enabled":false}' > /root/.config/.wrangler/metrics.json
-
-RUN npm run build
-
-CMD [ "pnpm", "run", "dockerstart"]
+# Start the application
+CMD ["pnpm", "run", "dockerstart"]
 
 # Development image
 FROM base AS bolt-ai-development
 
-# Define the same environment variables for development
-ARG GROQ_API_KEY
-ARG OPENAI_API_KEY
-ARG ANTHROPIC_API_KEY
-ARG OPEN_ROUTER_API_KEY
-ARG GOOGLE_GENERATIVE_AI_API_KEY
-ARG OLLAMA_API_BASE_URL
-ARG VITE_LOG_LEVEL=debug
+ENV NODE_ENV=development
 
-ENV GROQ_API_KEY=${GROQ_API_KEY} \
-    OPENAI_API_KEY=${OPENAI_API_KEY} \
-    ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY} \
-    OPEN_ROUTER_API_KEY=${OPEN_ROUTER_API_KEY} \
-    GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_GENERATIVE_AI_API_KEY} \
-    OLLAMA_API_BASE_URL=${OLLAMA_API_BASE_URL} \
-    VITE_LOG_LEVEL=${VITE_LOG_LEVEL}
-
-RUN mkdir -p ${WORKDIR}/run
-CMD pnpm run dev --host
+# Start development server
+CMD ["pnpm", "run", "dev", "--host", "0.0.0.0"]
