@@ -1,6 +1,6 @@
 version: '3.8'
 services:
-  app:
+  bolt-ai:
     build:
       context: .
       dockerfile: Dockerfile
