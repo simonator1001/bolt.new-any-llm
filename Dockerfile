@@ -21,11 +21,8 @@ RUN corepack enable pnpm
 # Copy package files first
 COPY package.json ./
 
-# Create a new pnpm-lock.yaml
-RUN pnpm install --lockfile-only
-
 # Install dependencies using pnpm
-RUN pnpm install
+RUN pnpm install --no-lockfile
 
 # Install additional dependencies explicitly
 RUN pnpm add -D \
