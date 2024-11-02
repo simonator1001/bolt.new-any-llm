@@ -1,6 +1,5 @@
 services:
   bolt-ai:
-    image: bolt-ai:production
     build:
       context: .
       dockerfile: Dockerfile
@@ -27,34 +26,11 @@ services:
       - coolify-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.bolt.rule=Host(`your-domain.com`)"
+      - "traefik.http.routers.bolt.rule=Host(`bolt.simon-ai.com`)"
       - "traefik.http.routers.bolt.entrypoints=websecure"
       - "traefik.http.routers.bolt.tls=true"
       - "traefik.http.routers.bolt.tls.certresolver=letsencrypt"
       - "traefik.http.services.bolt.loadbalancer.server.port=5173"
-
-  bolt-ai-dev:
-    image: bolt-ai:development
-    build:
-      target: bolt-ai-development
-    environment:
-      - NODE_ENV=development
-      - COMPOSE_PROFILES=development
-      - PORT=5173
-      - GROQ_API_KEY=${GROQ_API_KEY}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - OPEN_ROUTER_API_KEY=${OPEN_ROUTER_API_KEY}
-      - GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_GENERATIVE_AI_API_KEY}
-      - OLLAMA_API_BASE_URL=${OLLAMA_API_BASE_URL}
-      - VITE_LOG_LEVEL=${VITE_LOG_LEVEL:-debug}
-    volumes:
-      - .:/app
-      - /app/node_modules
-    ports:
-      - "5173:5173"
-    command: pnpm run dev --host 0.0.0.0
-    profiles: ["development", "default"]
 
 networks:
   coolify-network:

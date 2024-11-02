@@ -13,23 +13,17 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install pnpm using npm
-RUN npm install -g pnpm@9.4.0 \
-    @cloudflare/workers-types \
-    @remix-run/dev \
-    vite \
-    typescript
+RUN npm install -g pnpm@9.4.0
 
 # Copy package files first for better caching
-COPY package.json pnpm-lock.yaml ./
-
-# Install dependencies
+COPY package.json ./
 RUN pnpm install
 
 # Copy the rest of the application
 COPY . .
 
-# Install type definitions that were missing
-RUN pnpm add -D @cloudflare/workers-types @remix-run/cloudflare @types/node vite
+# Install additional dependencies
+RUN pnpm add -D @cloudflare/workers-types @remix-run/cloudflare @types/node vite @remix-run/dev typescript
 
 # Production image
 FROM base AS bolt-ai-production
